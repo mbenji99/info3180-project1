@@ -5,9 +5,14 @@ Werkzeug Documentation:  https://werkzeug.palletsprojects.com/
 This file contains the routes for your application.
 """
 
-from app import app
-from flask import render_template, request, redirect, url_for
-
+import os
+from app import app, db
+from flask import render_template, request, redirect, send_from_directory, url_for, flash, session, abort
+from flask_login import login_user, logout_user, current_user, login_required
+from werkzeug.utils import secure_filename
+from werkzeug.security import check_password_hash
+from app.forms import AddForm
+from app.models import Property
 
 ###
 # Routing for your application.
@@ -25,6 +30,63 @@ def about():
     return render_template('about.html', name="Mary Jane")
 
 
+@app.route('/properties/create', methods=['POST', 'GET'])
+def create_property():
+    form = AddForm()
+
+    if form.validate_on_submit():
+        title = form.proptitle.data
+        bedrooms = form.number_of_rooms.data
+        bathrooms = form.number_of_bathrooms.data
+        location = form.location.data
+        price = form.price.data
+        property_type = form.property_type.data
+        description = form.description.data
+        
+        # Get file data
+        photo = form.photo.data
+        photo_filename = secure_filename(photo.filename)
+        photo.save(os.path.join(app.config['UPLOAD_FOLDER'], photo_filename))
+        
+        # Create and add property to the database
+        property = Property(
+            proptitle=title,
+            description=description,
+            number_of_rooms=bedrooms,
+            price=price,
+            location=location,
+            photo=photo_filename,
+            number_of_bathrooms=bathrooms,
+            property_type=property_type
+        )
+        db.session.add(property)
+        db.session.commit()
+
+        flash('Property Saved', 'success')
+        return redirect(url_for('view_properties'))
+    else:
+        flash_errors(form)
+
+    return render_template('new_property.html', form=form)
+
+
+@app.route('/properties')
+def view_properties():
+    """Render the website's page that displays all properties."""
+    properties = db.session.execute(db.select(Property)).scalars()  
+    return render_template('properties.html', properties=properties) 
+
+
+@app.route("/properties/pics/<filename>")
+def get_image(filename):
+    root_dir = os.getcwd()
+    return send_from_directory(os.path.join(root_dir, app.config['UPLOAD_FOLDER']), filename)
+
+
+@app.route('/properties/<propertyid>', methods=['GET','POST'])
+def propertyid(propertyid):
+    property = db.session.query(Property).filter_by(id=propertyid).first()
+    return render_template('property.html', property=property)
 ###
 # The functions below should be applicable to all Flask apps.
 ###

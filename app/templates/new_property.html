@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block main %}
+<form id="add-property-form" method="post" action="/properties/create" enctype="multipart/form-data">
+    {% include 'flash_messages.html' %}
+    {{ form.csrf_token }}
+    
+    <div id="prgph-cntnr" class="container">
+        <h1 style="text-align: center;">Add New Property</h1>
+    </div>
+    {{ form.proptitle.label(class="form-label") }} {{ form.proptitle(class="form-control") }}
+    {{ form.description.label(class="form-label") }} {{ form.description(class="form-control") }}
+    <div id="form-split" class="container">
+        <div class="row .flex-row-reverse">
+            <div class="col-md-6 col-6 order-1 order-sml-2">
+                {{ form.number_of_rooms.label(class="form-label") }} {{ form.number_of_rooms(class="form-control", placeholder="3") }}
+                {{ form.price.label(class="form-label") }} {{ form.price(class="form-control", placeholder="15,000,000") }}
+                {{ form.location.label(class="form-label") }} {{ form.location(class="form-control", placeholder="17 Richarware Ave") }}
+                {{ form.photo.label(class="form-label") }} {{ form.photo(class="form-control form-control-sm") }}
+                <button class="btn btn-primary" type="submit">Add Property</button>
+            </div>
+            <div class="col-md-6 col-6 order-2 order-lg-1">
+                {{ form.number_of_bathrooms.label(class="form-label") }} {{ form.number_of_bathrooms(class="form-control") }}
+                {{ form.property_type.label(class="form-label") }} {{ form.property_type(class="form-select") }}
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block css %}{% endblock %}
